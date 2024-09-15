@@ -53,16 +53,18 @@ export class CiudadSupermercadoService {
         return ciudad.supermercados
     }
 
-    async updateSupermarketsFromCity(restaunrantId: string, supermercados: SupermercadoEntity[]): Promise<CiudadEntity> {
-        const ciudad = await this.ciudadRepository.findOne({where: {id: restaunrantId}, relations : ["supermercados"] });
+    async updateSupermarketsFromCity(ciudadId: string, supermercados: SupermercadoEntity[]): Promise<CiudadEntity> {
+        const ciudad = await this.ciudadRepository.findOne({where: {id: ciudadId}, relations : ["supermercados"] });
 
         if (!ciudad)
             throw new BusinessLogicException("The ciudad with the given id was not found", BusinessError.NOT_FOUND)
 
         for(let supermercadoEntity of supermercados) {
             const supermercado = await this.supermercadoRepository.findOne({where: {id: supermercadoEntity.id}});
-            if (!supermercado) 
-            throw new BusinessLogicException("The ciudad with the given id was not found", BusinessError.NOT_FOUND) 
+            if (!supermercado){
+                throw new BusinessLogicException("The supermercado with the given id was not found", BusinessError.NOT_FOUND) 
+            }
+            
         }
 
         ciudad.supermercados = supermercados;
@@ -77,6 +79,11 @@ export class CiudadSupermercadoService {
         const supermercado = await this.supermercadoRepository.findOne({where: {id: supermarketId}, relations: ["ciudades"] });
         if (!supermercado)
             throw new BusinessLogicException("The supermercado with the given id was not found", BusinessError.NOT_FOUND)
+
+        const ciudadSupermercado: SupermercadoEntity = ciudad.supermercados.find(e => e.id === supermercado.id);
+        if(!ciudadSupermercado) {
+            throw new BusinessLogicException("The supermercado with the given id is not associated to the ciudad", BusinessError.PRECONDITION_FAILED)
+        }
 
         ciudad.supermercados = ciudad.supermercados.filter(e => e.id !== supermarketId);
         await this.ciudadRepository.save(ciudad);
