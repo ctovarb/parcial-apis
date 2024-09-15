@@ -11,11 +11,6 @@ export class CiudadService {
         private readonly ciudadRepository: Repository<CiudadEntity>
     ){}
 
-    private isStatusValid(status: keyof typeof Paises) {
-        const value = Paises[status];
-        return !!value;
-    }
-
     async findAll(): Promise<CiudadEntity[]> {
         return await this.ciudadRepository.find({ relations: ["supermercados"]});
     }
